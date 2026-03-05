@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  reservations Reservation[]
+  orders       Order[]
+}
+
+model Product {
+  id            String         @id @default(cuid())
+  name          String
+  description   String
+  price         Float
+  totalStock    Int
+  currentStock  Int
+  imageUrl      String?
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  reservations  Reservation[]
+  orders        Order[]
+  inventoryLogs InventoryLog[]
+}
+
+model Reservation {
+  id        String            @id @default(cuid())
+  userId    String
+  productId String
+  quantity  Int
+  status    ReservationStatus @default(PENDING)
+  expiresAt DateTime
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  user      User              @relation(fields: [userId], references: [id])
+  product   Product           @relation(fields: [productId], references: [id])
+  order     Order?
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  userId        String
+  productId     String
+  reservationId String      @unique
+  quantity      Int
+  totalAmount   Float
+  status        OrderStatus @default(PENDING)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  user          User        @relation(fields: [userId], references: [id])
+  product       Product     @relation(fields: [productId], references: [id])
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+}
+
+model InventoryLog {
+  id        String          @id @default(cuid())
+  productId String
+  action    InventoryAction
+  quantity  Int
+  reason    String
+  createdAt DateTime        @default(now())
+  product   Product         @relation(fields: [productId], references: [id])
+}
+
+enum ReservationStatus {
+  PENDING
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum InventoryAction {
+  DEDUCTED
+  RESTORED
+  ADJUSTED
+}
