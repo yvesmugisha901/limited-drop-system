@@ -1,3 +1,4 @@
+// Limited Drop System - v1.0.1
 import { useState, useEffect } from 'react';
 import LoginPage from './pages/LoginPage';
 import DropPage from './pages/DropPage';
